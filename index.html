@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Em Khám Phá Phần Cứng Và Phần Mềm Máy Tính - Tin Học 4</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Nunito & Baloo 2 cho nét chữ tròn trịa, thân thiện với học sinh tiểu học -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:ital,wght@0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+    <!-- Font Awesome cho các biểu tượng sinh động -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Nunito', 'sans-serif'],
+                        display: ['"Baloo 2"', 'cursive'],
+                    },
+                    colors: {
+                        brandYellow: '#FACC15',
+                        brandYellowDark: '#EAB308',
+                        brandBlue: '#1E3A8A',
+                        brandBlueLight: '#2563EB',
+                        brandPink: '#DB2777',
+                        brandPinkLight: '#FCE7F3',
+                        bgSoft: '#F8FAFC'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F0F9FF;
+            background-image: radial-gradient(#BAE6FD 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            font-family: 'Nunito', sans-serif;
+            color: #1E293B;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .font-heading {
+            font-family: 'Baloo 2', cursive;
+        }
+
+        /* Hiệu ứng nút bấm nổi 3D thân thiện */
+        .btn-3d {
+            transition: all 0.15s ease;
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2);
+        }
+        .btn-3d:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        /* Khu vực kéo thả */
+        .draggable-card {
+            touch-action: manipulation;
+            user-select: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .draggable-card:hover:not(.locked) {
+            transform: translateY(-2px);
+        }
+        .draggable-card.selected-mobile {
+            box-shadow: 0 0 0 4px #DB2777, 0 10px 20px -5px rgba(219, 39, 119, 0.4);
+            transform: scale(1.04);
+        }
+        .dropzone {
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .dropzone.drag-over {
+            background-color: #FEF9C3 !important;
+            border-color: #EAB308 !important;
+            transform: scale(1.01);
+        }
+
+        /* Quy tắc viền chấm điểm nghiêm ngặt */
+        .question-card {
+            border-width: 4px;
+            border-style: solid;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .border-neutral-state {
+            border-color: #CBD5E1; /* Viền trung tính */
+        }
+        .border-correct-state {
+            border-color: #16A34A !important; /* Viền xanh lá 100% đúng */
+            box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.15);
+        }
+        .border-wrong-state {
+            border-color: #DC2626 !important; /* Viền đỏ khi sai hoặc thiếu ít nhất 1 ý */
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94A3B8;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748B;
+        }
+
+        @keyframes pulse-fast {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .timer-warning {
+            animation: pulse-fast 1s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- HỘP THÔNG BÁO TÙY CHỈNH (THAY THẾ HOÀN TOÀN ALERT / CONFIRM) -->
+    <div id="custom-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 border-4 border-brandYellow shadow-2xl transform transition-all scale-100">
+            <div class="flex items-center gap-3 mb-3">
+                <div id="modal-icon" class="w-12 h-12 rounded-2xl bg-pink-100 text-brandPink flex items-center justify-center text-2xl shrink-0">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <h3 id="modal-title" class="text-2xl font-bold text-brandBlue">Thông báo</h3>
+            </div>
+            <p id="modal-message" class="text-slate-700 text-lg mb-6 leading-relaxed font-semibold"></p>
+            <div id="modal-actions" class="flex justify-end gap-3">
+                <button type="button" id="modal-cancel-btn" class="hidden px-5 py-2.5 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-base transition cursor-pointer">Hủy bỏ</button>
+                <button type="button" id="modal-confirm-btn" class="btn-3d px-6 py-2.5 rounded-2xl bg-brandBlue hover:bg-blue-800 text-white font-bold text-base cursor-pointer">Đã hiểu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CẤU HÌNH GOOGLE SHEET DÀNH CHO GIÁO VIÊN -->
+    <div id="gsheet-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 border-4 border-emerald-500 shadow-2xl my-auto">
+            <div class="flex items-center justify-between gap-3 mb-4 pb-3 border-b-2 border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl shrink-0">
+                        <i class="fa-solid fa-table"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl sm:text-2xl font-extrabold text-brandBlue">Kết nối dữ liệu với Google Sheet</h3>
+                        <p class="text-xs sm:text-sm text-slate-500 font-bold">Lưu trữ tự động kết quả làm bài của học sinh</p>
+                    </div>
+                </div>
+                <button type="button" id="close-gsheet-modal" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-lg font-bold cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label for="gsheet-url-input" class="block text-sm font-extrabold text-slate-700 mb-1.5">
+                        Dán đường dẫn Google Apps Script (Web App URL) tại đây:
+                    </label>
+                    <input type="url" id="gsheet-url-input" placeholder="https://script.google.com/macros/s/.../exec"
+                        class="w-full px-4 py-3 rounded-2xl border-2 border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100 outline-none text-sm sm:text-base font-semibold text-slate-800">
+                    <p class="text-xs text-slate-500 font-semibold mt-1.5">
+                        <i class="fa-solid fa-circle-info text-emerald-600 mr-1"></i> Khi đã lưu URL, mỗi lần học sinh nộp bài hoặc giáo viên xác nhận điểm Câu 5, kết quả sẽ tự động ghi thành một hàng mới trong Google Sheet.
+                    </p>
+                </div>
+
+                <!-- Hướng dẫn nhanh tạo Google Apps Script -->
+                <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-extrabold text-brandBlue"><i class="fa-solid fa-code text-brandPink mr-1"></i> Mã Google Apps Script (Copy dán vào Apps Script):</span>
+                        <button type="button" id="btn-copy-gas" class="px-3 py-1 rounded-lg bg-brandBlue hover:bg-blue-800 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-regular fa-copy"></i> Sao chép mã
+                        </button>
+                    </div>
+                    <pre id="gas-code-block" class="bg-slate-900 text-emerald-300 text-xs p-3 rounded-xl overflow-x-auto font-mono leading-relaxed select-all">function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow([
+      "Thời gian nộp", "Họ và tên", "Lớp", 
+      "Điểm Câu 1", "Điểm Câu 2", "Điểm Câu 3", "Điểm Câu 4", "Điểm Câu 5",
+      "Câu trả lời Câu 5", "Tổng điểm", "Số câu đúng hoàn toàn", "Thời gian làm bài", "Nhận xét", "Trạng thái chấm"
+    ]);
+  }
+  sheet.appendRow([
+    new Date().toLocaleString("vi-VN"), data.studentName, data.studentClass,
+    data.q1Score, data.q2Score, data.q3Score, data.q4Score, data.q5Score,
+    data.q5Text, data.totalScore, data.correctCount, data.timeTaken, data.comment, data.status
+  ]);
+  return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
+}</pre>
+                    <ol class="list-decimal list-inside text-xs text-slate-600 font-semibold mt-2.5 space-y-1">
+                        <li>Mở Google Sheet → Chọn <strong>Tiện ích mở rộng (Extensions)</strong> → <strong>Apps Script</strong>.</li>
+                        <li>Xóa mã cũ, dán đoạn mã trên vào và nhấn <strong>Lưu (Ctrl+S)</strong>.</li>
+                        <li>Nhấn <strong>Triển khai (Deploy)</strong> → <strong>Tùy chọn triển khai mới</strong> → Chọn <strong>Ứng dụng web (Web app)</strong> → Mục <em>Ai có quyền truy cập</em> chọn <strong>Bất kỳ ai (Anyone)</strong> → Nhấn <strong>Triển khai</strong> và dán URL vào ô trên.</li>
+                    </ol>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-end gap-3 pt-2">
+                    <button type="button" id="btn-test-gsheet" class="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-sm cursor-pointer">
+                        <i class="fa-solid fa-paper-plane mr-1"></i> Gửi dữ liệu kiểm tra (Test)
+                    </button>
+                    <button type="button" id="btn-save-gsheet" class="btn-3d px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base cursor-pointer">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i> Lưu kết nối
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MÀN HÌNH 1: MÀN HÌNH BẮT ĐẦU ================= -->
+    <section id="start-screen" class="flex-grow flex items-center justify-center p-4 sm:p-6">
+        <div class="max-w-5xl w-full bg-white rounded-[2rem] shadow-2xl border-4 border-brandYellow overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+            
+            <!-- Cột trái: Minh họa & Thông tin bài học -->
+            <div class="lg:col-span-6 bg-gradient-to-br from-brandBlue via-blue-800 to-indigo-900 text-white p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute -top-12 -left-12 w-40 h-40 bg-brandYellow/20 rounded-full blur-xl"></div>
+                <div class="absolute -bottom-16 -right-12 w-52 h-52 bg-brandPink/30 rounded-full blur-xl"></div>
+
+                <div class="relative z-10">
+                    <div class="inline-flex items-center gap-2 bg-brandPink text-white px-4 py-1.5 rounded-full text-sm font-extrabold tracking-wide shadow-md mb-4">
+                        <i class="fa-solid fa-sparkles"></i> PHIẾU HỌC TẬP TƯƠNG TÁC
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-brandYellow leading-tight drop-shadow-sm mb-3">
+                        EM KHÁM PHÁ PHẦN CỨNG VÀ PHẦN MỀM MÁY TÍNH
+                    </h1>
+                    <p class="text-blue-100 text-base sm:text-lg font-medium mb-6">
+                        Chủ đề 1: Máy tính và em • Bài 1: Phần cứng và phần mềm máy tính
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-3.5 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-brandYellow text-brandBlue flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-blue-200 font-bold uppercase">Môn học</div>
+                                <div class="font-extrabold text-sm sm:text-base">Tin học – Lớp 4</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-3.5 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-brandPink text-white flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-blue-200 font-bold uppercase">Thời gian</div>
+                                <div class="font-extrabold text-sm sm:text-base">15 phút</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-3.5 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-400 text-slate-900 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-blue-200 font-bold uppercase">Thang điểm</div>
+                                <div class="font-extrabold text-sm sm:text-base">10 điểm</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-3.5 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-sky-300 text-brandBlue flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-list-check"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-blue-200 font-bold uppercase">Số lượng</div>
+                                <div class="font-extrabold text-sm sm:text-base">5 câu hỏi</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Minh họa SVG máy tính vui nhộn -->
+                <div class="relative z-10 bg-white/10 rounded-2xl p-4 border border-white/15 flex items-center justify-around">
+                    <div class="text-center">
+                        <div class="w-14 h-14 mx-auto bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-3xl shadow-inner mb-1">
+                            <i class="fa-solid fa-desktop"></i>
+                        </div>
+                        <span class="text-xs font-bold text-amber-200">Phần cứng</span>
+                    </div>
+                    <div class="text-2xl text-brandYellow font-extrabold">+</div>
+                    <div class="text-center">
+                        <div class="w-14 h-14 mx-auto bg-pink-100 text-brandPink rounded-2xl flex items-center justify-center text-3xl shadow-inner mb-1">
+                            <i class="fa-solid fa-gamepad"></i>
+                        </div>
+                        <span class="text-xs font-bold text-pink-200">Phần mềm</span>
+                    </div>
+                    <div class="text-2xl text-brandYellow font-extrabold">=</div>
+                    <div class="text-center">
+                        <div class="w-14 h-14 mx-auto bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl shadow-inner mb-1">
+                            <i class="fa-solid fa-face-laugh-beam"></i>
+                        </div>
+                        <span class="text-xs font-bold text-emerald-200">Học vui!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Form nhập thông tin & Hướng dẫn -->
+            <div class="lg:col-span-6 p-6 sm:p-8 flex flex-col justify-center bg-white">
+                <div class="bg-amber-50 border-2 border-brandYellow rounded-2xl p-4 mb-6">
+                    <h2 class="text-lg font-extrabold text-brandBlue flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-circle-info text-brandPink"></i> Hướng dẫn làm bài:
+                    </h2>
+                    <p class="text-slate-700 text-sm sm:text-base leading-relaxed font-medium">
+                        Em hãy đọc kĩ yêu cầu và thực hiện lần lượt 5 câu hỏi bằng cách <strong>kéo – thả, nối, chọn đáp án, xác định đúng/sai</strong> và <strong>giải quyết tình huống</strong>. Ở câu cuối cùng, em tự suy nghĩ và gõ câu trả lời ngắn bằng bàn phím. Khi hoàn thành, nhấn nút <strong>"CHẤM ĐIỂM"</strong> để xem kết quả.
+                    </p>
+                </div>
+
+                <form id="student-info-form" class="space-y-4" novalidate>
+                    <div>
+                        <label for="student-name" class="block text-brandBlue font-extrabold text-base mb-1.5">
+                            <i class="fa-solid fa-user-pen text-brandPink mr-1"></i> HỌ VÀ TÊN <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="student-name" placeholder="Ví dụ: Nguyễn Minh An" 
+                            class="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-300 focus:border-brandBlue focus:ring-4 focus:ring-blue-100 outline-none text-lg font-bold text-slate-800 transition">
+                    </div>
+
+                    <div>
+                        <label for="student-class" class="block text-brandBlue font-extrabold text-base mb-1.5">
+                            <i class="fa-solid fa-school text-brandPink mr-1"></i> LỚP <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="student-class" placeholder="Ví dụ: 4A" 
+                            class="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-300 focus:border-brandBlue focus:ring-4 focus:ring-blue-100 outline-none text-lg font-bold text-slate-800 transition">
+                    </div>
+
+                    <p id="start-error-msg" class="hidden text-red-600 font-bold text-sm bg-red-50 border border-red-200 rounded-xl px-3.5 py-2.5 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Em hãy nhập đầy đủ Họ và tên cùng với Lớp trước khi bắt đầu nhé!</span>
+                    </p>
+
+                    <div class="pt-2">
+                        <button type="submit" id="start-btn" class="btn-3d w-full py-4 px-6 rounded-2xl bg-brandPink hover:bg-pink-700 text-white font-heading text-2xl font-extrabold tracking-wide flex items-center justify-center gap-3 cursor-pointer">
+                            <span>🚀 BẮT ĐẦU LÀM BÀI</span>
+                        </button>
+                    </div>
+
+                    <!-- Nút cấu hình Google Sheet dành cho Giáo viên -->
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <span id="gsheet-status-badge" class="font-bold text-slate-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle text-[8px]"></i> Chưa kết nối Google Sheet
+                        </span>
+                        <button type="button" id="open-gsheet-start" class="font-extrabold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 transition cursor-pointer flex items-center gap-1.5">
+                            <i class="fa-solid fa-table"></i> Cài đặt Google Sheet (GV)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= MÀN HÌNH 2: PHIẾU HỌC TẬP TƯƠNG TÁC ================= -->
+    <div id="worksheet-screen" class="hidden flex-col min-h-screen">
+        
+        <!-- Thanh Header cố định trên cùng -->
+        <header class="sticky top-0 z-40 bg-brandBlue text-white shadow-lg border-b-4 border-brandYellow">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-brandYellow text-brandBlue flex items-center justify-center text-xl font-extrabold shrink-0">
+                        <i class="fa-solid fa-laptop-code"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base sm:text-xl font-extrabold text-brandYellow leading-tight">
+                            EM KHÁM PHÁ PHẦN CỨNG VÀ PHẦN MỀM MÁY TÍNH
+                        </h1>
+                        <div class="text-xs sm:text-sm text-blue-100 font-semibold flex flex-wrap gap-x-4">
+                            <span><i class="fa-solid fa-user text-pink-300 mr-1"></i>Học sinh: <strong id="display-name" class="text-white"></strong></span>
+                            <span><i class="fa-solid fa-users text-pink-300 mr-1"></i>Lớp: <strong id="display-class" class="text-white"></strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Đồng hồ đếm ngược 15 phút -->
+                <div id="timer-box" class="flex items-center gap-2.5 bg-white text-brandBlue px-4 py-2 rounded-2xl border-2 border-brandYellow shadow-inner">
+                    <i id="timer-icon" class="fa-solid fa-stopwatch text-brandPink text-xl"></i>
+                    <div>
+                        <div class="text-[10px] uppercase font-extrabold text-slate-500 leading-none">Thời gian còn lại</div>
+                        <div id="timer-display" class="text-xl sm:text-2xl font-heading font-extrabold tracking-wider leading-none mt-0.5">15:00</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Nội dung chính 5 câu hỏi -->
+        <main class="max-w-6xl w-full mx-auto px-4 py-6 sm:py-8 space-y-8 flex-grow">
+
+            <!-- BẢNG KẾT QUẢ HỌC TẬP (Ẩn cho đến khi bấm Chấm điểm) -->
+            <section id="result-dashboard" class="hidden bg-white rounded-3xl p-6 sm:p-8 border-4 border-brandYellow shadow-2xl">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6 border-b-2 border-slate-100 pb-6 mb-6">
+                    <div class="flex items-center gap-4 text-center md:text-left flex-col md:flex-row">
+                        <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-brandYellow to-amber-300 text-brandBlue flex items-center justify-center text-4xl shadow-lg shrink-0">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <div>
+                            <span class="inline-block bg-pink-100 text-brandPink text-xs font-extrabold px-3 py-1 rounded-full uppercase mb-1">Kết quả phiếu học tập</span>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-brandBlue">EM KHÁM PHÁ PHẦN CỨNG VÀ PHẦN MỀM MÁY TÍNH</h2>
+                            <p class="text-slate-600 font-bold text-base mt-1">
+                                Học sinh: <span id="res-name" class="text-brandBlue"></span> • Lớp: <span id="res-class" class="text-brandBlue"></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Ô hiển thị Điểm số -->
+                    <div class="bg-blue-50 border-2 border-brandBlue rounded-3xl px-6 py-4 text-center min-w-[220px]">
+                        <div id="res-score-label" class="text-xs font-extrabold uppercase text-brandBlue mb-1">Tổng điểm đạt được</div>
+                        <div class="text-4xl sm:text-5xl font-heading font-extrabold text-brandPink">
+                            <span id="res-total-score">0</span><span class="text-2xl text-slate-500">/10</span>
+                        </div>
+                        <div id="res-pending-note" class="hidden text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-lg mt-2">
+                            <i class="fa-solid fa-hourglass-half mr-1"></i>Đang chờ xác nhận Câu 5
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3 Thẻ thông số chi tiết -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl shrink-0">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-slate-500 uppercase">Số câu đúng hoàn toàn</div>
+                            <div id="res-correct-count" class="text-xl font-extrabold text-slate-800">0 / 5 câu</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-100 text-brandBlue flex items-center justify-center text-2xl shrink-0">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-slate-500 uppercase">Thời gian hoàn thành</div>
+                            <div id="res-time-taken" class="text-xl font-extrabold text-slate-800">00 phút 00 giây</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-pink-100 text-brandPink flex items-center justify-center text-2xl shrink-0">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-slate-500 uppercase">Nhận xét tự động</div>
+                            <div id="res-comment" class="text-xl font-extrabold text-brandPink">Đang chờ chấm đủ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thanh nút Xem lại, Làm lại & Đồng bộ Google Sheet -->
+                <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+                    <button type="button" id="btn-review" class="btn-3d px-5 py-3 rounded-2xl bg-brandBlue hover:bg-blue-800 text-white font-bold text-base flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-magnifying-glass"></i> XEM LẠI BÀI LÀM
+                    </button>
+                    <button type="button" id="btn-retry" class="btn-3d px-5 py-3 rounded-2xl bg-brandYellow hover:bg-amber-400 text-brandBlue font-extrabold text-base flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-rotate-right"></i> LÀM LẠI BÀI
+                    </button>
+                    <button type="button" id="btn-sync-gsheet" class="btn-3d px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> GỬI LẠI LÊN GOOGLE SHEET
+                    </button>
+                    <button type="button" id="open-gsheet-result" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm sm:text-base flex items-center gap-2 cursor-pointer border border-slate-300" title="Cài đặt đường dẫn Google Sheet">
+                        <i class="fa-solid fa-gear"></i> Cài đặt Google Sheet (GV)
+                    </button>
+                </div>
+
+                <!-- Thanh trạng thái đồng bộ Google Sheet -->
+                <div id="gsheet-sync-banner" class="hidden mt-5 rounded-2xl p-3.5 text-center font-bold text-sm sm:text-base border-2"></div>
+            </section>
+
+            <!-- ==================== CÂU 1: KÉO - THẢ (2 ĐIỂM) ==================== -->
+            <article id="card-q1" class="question-card border-neutral-state bg-white rounded-3xl p-5 sm:p-7 shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b-2 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-brandBlue text-white font-heading font-extrabold px-4 py-1.5 rounded-2xl text-lg shadow-sm">CÂU 1 (2 điểm)</span>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-brandPink">EM PHÂN LOẠI THẬT GIỎI!</h2>
+                    </div>
+                    <span id="score-badge-q1" class="hidden px-4 py-1.5 rounded-full font-extrabold text-sm"></span>
+                </div>
+
+                <p class="text-base sm:text-lg font-bold text-slate-700 mb-2">
+                    Em hãy kéo các thiết bị và phần mềm vào đúng nhóm của chúng.
+                </p>
+                <p class="text-xs sm:text-sm text-slate-500 font-semibold mb-4 bg-blue-50 px-3 py-2 rounded-xl inline-block">
+                    <i class="fa-solid fa-hand-pointer text-brandBlue mr-1"></i> Mẹo: Em có thể kéo thả thẻ bằng chuột hoặc chạm chọn một thẻ rồi chạm vào khung nhóm muốn đặt (trên điện thoại/máy tính bảng).
+                </p>
+
+                <!-- Kho thẻ nguồn -->
+                <div class="mb-6">
+                    <div class="text-xs font-extrabold uppercase text-slate-400 mb-2 tracking-wider">Kho thẻ cần phân loại (Chạm hoặc kéo thẻ từ đây):</div>
+                    <div id="q1-pool" data-zone="pool" class="dropzone min-h-[96px] bg-slate-100 border-2 border-dashed border-slate-300 rounded-2xl p-3 flex flex-wrap gap-3 items-center justify-center">
+                        <!-- Các thẻ được render bằng JS -->
+                    </div>
+                </div>
+
+                <!-- Hai khu vực thả: PHẦN CỨNG & PHẦN MỀM -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Nhóm Phần cứng -->
+                    <div class="bg-amber-50/70 rounded-2xl border-2 border-amber-300 p-4 flex flex-col">
+                        <div class="flex items-center justify-center gap-2 bg-brandYellow text-brandBlue font-heading font-extrabold text-xl py-2.5 px-4 rounded-xl mb-3 shadow-sm">
+                            <i class="fa-solid fa-microchip"></i> PHẦN CỨNG
+                        </div>
+                        <div id="q1-hardware" data-zone="hardware" class="dropzone flex-grow min-h-[160px] bg-white/90 border-2 border-dashed border-amber-400 rounded-xl p-3 flex flex-wrap gap-2.5 content-start">
+                        </div>
+                    </div>
+
+                    <!-- Nhóm Phần mềm -->
+                    <div class="bg-pink-50/70 rounded-2xl border-2 border-pink-300 p-4 flex flex-col">
+                        <div class="flex items-center justify-center gap-2 bg-brandPink text-white font-heading font-extrabold text-xl py-2.5 px-4 rounded-xl mb-3 shadow-sm">
+                            <i class="fa-solid fa-window-restore"></i> PHẦN MỀM
+                        </div>
+                        <div id="q1-software" data-zone="software" class="dropzone flex-grow min-h-[160px] bg-white/90 border-2 border-dashed border-pink-400 rounded-xl p-3 flex flex-wrap gap-2.5 content-start">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Giải thích đáp án sau khi chấm -->
+                <div id="feedback-q1" class="hidden mt-5 bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 text-sm sm:text-base"></div>
+            </article>
+
+            <!-- ==================== CÂU 2: NỐI (2 ĐIỂM) ==================== -->
+            <article id="card-q2" class="question-card border-neutral-state bg-white rounded-3xl p-5 sm:p-7 shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b-2 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-brandBlue text-white font-heading font-extrabold px-4 py-1.5 rounded-2xl text-lg shadow-sm">CÂU 2 (2 điểm)</span>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-brandPink">KẾT NỐI KIẾN THỨC!</h2>
+                    </div>
+                    <span id="score-badge-q2" class="hidden px-4 py-1.5 rounded-full font-extrabold text-sm"></span>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <p class="text-base sm:text-lg font-bold text-slate-700">
+                        Em hãy nối mỗi nội dung ở cột A với mô tả phù hợp ở cột B.
+                    </p>
+                    <button type="button" id="btn-clear-q2" class="text-xs sm:text-sm font-bold text-brandPink hover:text-pink-700 bg-pink-50 hover:bg-pink-100 px-3 py-1.5 rounded-xl border border-pink-200 transition cursor-pointer">
+                        <i class="fa-solid fa-eraser mr-1"></i> Xóa tất cả đường nối
+                    </button>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-500 font-semibold mb-4 bg-blue-50 px-3 py-2 rounded-xl inline-block">
+                    <i class="fa-solid fa-circle-nodes text-brandBlue mr-1"></i> Cách làm: Nhấn chọn một mục ở <strong>Cột A</strong> rồi nhấn chọn mục tương ứng ở <strong>Cột B</strong> (hoặc kéo từ chấm tròn này sang chấm tròn kia). Nhấn lại vào mục đã nối nếu muốn gỡ đường nối đó.
+                </p>
+
+                <!-- Khu vực nối 2 cột đối diện + SVG vẽ đường nối ở giữa -->
+                <div id="q2-container" class="relative select-none">
+                    <svg id="q2-svg" class="absolute inset-0 w-full h-full pointer-events-none z-10"></svg>
+
+                    <div class="grid grid-cols-12 gap-2 sm:gap-4 items-stretch relative z-20">
+                        <!-- CỘT A (5 phần) -->
+                        <div class="col-span-5 flex flex-col justify-between space-y-3">
+                            <div class="text-center font-heading font-extrabold text-brandBlue bg-amber-200 py-1.5 rounded-xl text-base sm:text-lg">CỘT A</div>
+                            
+                            <button type="button" data-side="A" data-id="1" class="q2-node q2-left group relative flex items-center justify-between p-3 sm:p-4 rounded-2xl border-2 border-slate-300 bg-white hover:border-brandBlue text-left font-bold text-sm sm:text-base transition cursor-pointer min-h-[68px]">
+                                <span><strong class="text-brandBlue mr-1">1.</strong> Phần cứng.</span>
+                                <span class="q2-dot w-4 h-4 rounded-full bg-slate-300 border-2 border-white shadow shrink-0 ml-2 group-hover:bg-brandBlue"></span>
+                            </button>
+
+                            <button type="button" data-side="A" data-id="2" class="q2-node q2-left group relative flex items-center justify-between p-3 sm:p-4 rounded-2xl border-2 border-slate-300 bg-white hover:border-brandBlue text-left font-bold text-sm sm:text-base transition cursor-pointer min-h-[68px]">
+                                <span><strong class="text-brandBlue mr-1">2.</strong> Phần mềm.</span>
+                                <span class="q2-dot w-4 h-4 rounded-full bg-slate-300 border-2 border-white shadow shrink-0 ml-2 group-hover:bg-brandBlue"></span>
+                            </button>
+
+                            <button type="button" data-side="A" data-id="3" class="q2-node q2-left group relative flex items-center justify-between p-3 sm:p-4 rounded-2xl border-2 border-slate-300 bg-white hover:border-brandBlue text-left font-bold text-sm sm:text-base transition cursor-pointer min-h-[68px]">
+                                <span><strong class="text-brandBlue mr-1">3.</strong> Màn hình.</span>
+                                <span class="q2-dot w-4 h-4 rounded-full bg-slate-300 border-2 border-white shadow shrink-0 ml-2 group-hover:bg-brandBlue"></span>
+                            </button>
+
+                            <button type="button" data-side="A" data-id="4" class="q2-node q2-left group relative flex items-center justify-between p-3 sm:p-4 rounded-2xl border-2 border-slate-300 bg-white hover:border-brandBlue text-left font-bold text-sm sm:text-base transition cursor-pointer min-h-[68px]">
+                                <span><strong class="text-brandBlue mr-1">4.</strong> Ứng dụng điện thoại.</span>
+                                <span class="q2-dot w-4 h-4 rounded-full bg-slate-300 border-2 border-white shadow shrink-0 ml-2 group-hover:bg-brandBlue"></span>
+                            </button>
+                        </div>
+
+                        <!-- KHOẢNG TRỐNG Ở GIỮA ĐỂ ĐƯỜNG NỐI KHÔNG CHE CHỮ (2 phần) -->
+                        <div class="col-span-2"></div>
+
+                        <!-- CỘT B (5 phần) -->
+                        <div class="col-span-5 flex flex-col justify-between space-y-3">
+                            <div class="text-center font-heading font-extrabold text-white bg-brandPink py-1.5 rounded-xl text-base sm:text-lg">CỘT B</div>
+
+                            <button type="button" data-side="B" data-id="A" class="q2-node q2-right group relative flex items-center p-3 sm:p-4 rounded-2xl border-2 border-slate-300 bg-white hover:border-brandPink text-left font-bold text-sm sm:text-base transition cursor-pointer min-h-[68px]">
+                                <span class="q2-dot w-4 h-4 rounded-full bg-slate-300 border-2 border-white shadow shrink-0 mr-2.5 group-hover:bg-brandPink"></span>
+                                <span><strong class="text-brandPink mr-1">A.</strong> Có thể thêm hoặc xóa trên điện thoại.</span>
+                            </button>
+
+                            <button type="button" data-side="B" data-id="B" class="q2-node q2-right group relative flex items-center p-3 sm:p-4 rounded-2xl border-2 border-slate-300 bg-white hover:border-brandPink text-left font-bold text-sm sm:text-base transition cursor-pointer min-h-[68px]">
+                                <span class="q2-dot w-4 h-4 rounded-full bg-slate-300 border-2 border-white shadow shrink-0 mr-2.5 group-hover:bg-brandPink"></span>
+                                <span><strong class="text-brandPink mr-1">B.</strong> Có hình dạng, có thể nhận ra.</span>
+                            </button>
+
+                            <button type="button" data-side="B" data-id="C" class="q2-node q2-right group relative flex items-center p-3 sm:p-4 rounded-2xl border-2 border-slate-300 bg-white hover:border-brandPink text-left font-bold text-sm sm:text-base transition cursor-pointer min-h-[68px]">
+                                <span class="q2-dot w-4 h-4 rounded-full bg-slate-300 border-2 border-white shadow shrink-0 mr-2.5 group-hover:bg-brandPink"></span>
+                                <span><strong class="text-brandPink mr-1">C.</strong> Hiển thị kết quả hoạt động.</span>
+                            </button>
+
+                            <button type="button" data-side="B" data-id="D" class="q2-node q2-right group relative flex items-center p-3 sm:p-4 rounded-2xl border-2 border-slate-300 bg-white hover:border-brandPink text-left font-bold text-sm sm:text-base transition cursor-pointer min-h-[68px]">
+                                <span class="q2-dot w-4 h-4 rounded-full bg-slate-300 border-2 border-white shadow shrink-0 mr-2.5 group-hover:bg-brandPink"></span>
+                                <span><strong class="text-brandPink mr-1">D.</strong> Không có hình dạng như phần cứng.</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Giải thích đáp án sau khi chấm -->
+                <div id="feedback-q2" class="hidden mt-5 bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 text-sm sm:text-base"></div>
+            </article>
+
+            <!-- ==================== CÂU 3: TRẮC NGHIỆM (2 ĐIỂM) ==================== -->
+            <article id="card-q3" class="question-card border-neutral-state bg-white rounded-3xl p-5 sm:p-7 shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b-2 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-brandBlue text-white font-heading font-extrabold px-4 py-1.5 rounded-2xl text-lg shadow-sm">CÂU 3 (2 điểm)</span>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-brandPink">AI CHỌN ĐÚNG NÀO?</h2>
+                    </div>
+                    <span id="score-badge-q3" class="hidden px-4 py-1.5 rounded-full font-extrabold text-sm"></span>
+                </div>
+
+                <p class="text-base sm:text-lg font-extrabold text-slate-800 mb-4">
+                    Phát biểu nào sau đây là <span class="text-brandPink underline decoration-2">sai</span>?
+                </p>
+
+                <div id="q3-options" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button type="button" data-opt="A" class="q3-option flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-300 bg-white hover:border-brandBlue text-left transition cursor-pointer">
+                        <span class="q3-letter w-11 h-11 rounded-xl bg-slate-100 text-brandBlue font-heading font-extrabold text-xl flex items-center justify-center shrink-0">A</span>
+                        <span class="font-bold text-slate-700 text-base sm:text-lg">Trò chơi trên máy tính là phần mềm.</span>
+                    </button>
+
+                    <button type="button" data-opt="B" class="q3-option flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-300 bg-white hover:border-brandBlue text-left transition cursor-pointer">
+                        <span class="q3-letter w-11 h-11 rounded-xl bg-slate-100 text-brandBlue font-heading font-extrabold text-xl flex items-center justify-center shrink-0">B</span>
+                        <span class="font-bold text-slate-700 text-base sm:text-lg">Thân máy của máy tính là phần cứng.</span>
+                    </button>
+
+                    <button type="button" data-opt="C" class="q3-option flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-300 bg-white hover:border-brandBlue text-left transition cursor-pointer">
+                        <span class="q3-letter w-11 h-11 rounded-xl bg-slate-100 text-brandBlue font-heading font-extrabold text-xl flex items-center justify-center shrink-0">C</span>
+                        <span class="font-bold text-slate-700 text-base sm:text-lg">Chương trình luyện tập gõ bàn phím là phần cứng.</span>
+                    </button>
+
+                    <button type="button" data-opt="D" class="q3-option flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-300 bg-white hover:border-brandBlue text-left transition cursor-pointer">
+                        <span class="q3-letter w-11 h-11 rounded-xl bg-slate-100 text-brandBlue font-heading font-extrabold text-xl flex items-center justify-center shrink-0">D</span>
+                        <span class="font-bold text-slate-700 text-base sm:text-lg">Ứng dụng xem video trên máy tính là phần mềm.</span>
+                    </button>
+                </div>
+
+                <!-- Giải thích đáp án sau khi chấm -->
+                <div id="feedback-q3" class="hidden mt-5 bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 text-sm sm:text-base"></div>
+            </article>
+
+            <!-- ==================== CÂU 4: ĐÚNG / SAI (2 ĐIỂM) ==================== -->
+            <article id="card-q4" class="question-card border-neutral-state bg-white rounded-3xl p-5 sm:p-7 shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b-2 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-brandBlue text-white font-heading font-extrabold px-4 py-1.5 rounded-2xl text-lg shadow-sm">CÂU 4 (2 điểm)</span>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-brandPink">EM LÀ THÁM TỬ TIN HỌC!</h2>
+                    </div>
+                    <span id="score-badge-q4" class="hidden px-4 py-1.5 rounded-full font-extrabold text-sm"></span>
+                </div>
+
+                <p class="text-base sm:text-lg font-bold text-slate-700 mb-4">
+                    Em hãy xác định các phát biểu sau là đúng hay sai.
+                </p>
+
+                <div id="q4-list" class="space-y-3.5">
+                    <!-- Render 4 phát biểu bằng JS -->
+                </div>
+
+                <!-- Giải thích đáp án sau khi chấm -->
+                <div id="feedback-q4" class="hidden mt-5 bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 text-sm sm:text-base"></div>
+            </article>
+
+            <!-- ==================== CÂU 5: TÌNH HUỐNG THỰC TẾ (2 ĐIỂM) ==================== -->
+            <article id="card-q5" class="question-card border-neutral-state bg-white rounded-3xl p-5 sm:p-7 shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b-2 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-brandBlue text-white font-heading font-extrabold px-4 py-1.5 rounded-2xl text-lg shadow-sm">CÂU 5 (2 điểm)</span>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-brandPink">EM GIÚP BẠN AN NHÉ!</h2>
+                    </div>
+                    <span id="score-badge-q5" class="hidden px-4 py-1.5 rounded-full font-extrabold text-sm"></span>
+                </div>
+
+                <!-- Khung tình huống nổi bật kèm hình minh họa bạn học sinh suy nghĩ bên máy tính -->
+                <div class="bg-gradient-to-r from-amber-50 to-pink-50 border-2 border-brandYellow rounded-2xl p-4 sm:p-5 mb-5 flex flex-col sm:flex-row items-center gap-4">
+                    <div class="w-28 h-28 rounded-2xl bg-white border-2 border-amber-300 shadow-sm flex items-center justify-center shrink-0 p-2">
+                        <svg viewBox="0 0 120 120" class="w-full h-full">
+                            <!-- Bàn học -->
+                            <rect x="10" y="95" width="100" height="8" rx="4" fill="#94A3B8"/>
+                            <!-- Màn hình máy tính -->
+                            <rect x="58" y="45" width="46" height="34" rx="5" fill="#1E3A8A"/>
+                            <rect x="62" y="49" width="38" height="24" rx="2" fill="#BAE6FD"/>
+                            <rect x="76" y="79" width="10" height="16" fill="#64748B"/>
+                            <rect x="68" y="91" width="26" height="4" rx="2" fill="#475569"/>
+                            <!-- Bạn An đang suy nghĩ -->
+                            <circle cx="34" cy="52" r="14" fill="#FDBA74"/>
+                            <path d="M20 48 C20 34, 48 34, 48 48 C44 42, 24 42, 20 48 Z" fill="#1E293B"/>
+                            <circle cx="30" cy="52" r="1.8" fill="#1E293B"/>
+                            <circle cx="39" cy="52" r="1.8" fill="#1E293B"/>
+                            <path d="M31 59 Q35 57 38 59" stroke="#1E293B" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            <path d="M18 95 C18 74, 50 74, 50 95 Z" fill="#DB2777"/>
+                            <!-- Bong bóng suy nghĩ -->
+                            <circle cx="48" cy="30" r="3" fill="#FACC15"/>
+                            <circle cx="55" cy="22" r="4.5" fill="#FACC15"/>
+                            <rect x="60" y="6" width="36" height="22" rx="11" fill="#FACC15"/>
+                            <text x="78" y="22" text-anchor="middle" font-size="15" font-weight="bold" fill="#1E3A8A">?</text>
+                        </svg>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="inline-block bg-brandYellow text-brandBlue text-xs font-extrabold px-3 py-1 rounded-full uppercase">Tình huống thực tế</div>
+                        <p class="text-slate-800 text-base sm:text-lg font-bold leading-relaxed">
+                            An muốn chơi một trò chơi học tập trên máy tính ở nhà. Tuy nhiên, máy tính của An chưa có trò chơi đó. An nghĩ rằng phải mua một chiếc máy tính mới thì mới chơi được.
+                        </p>
+                        <p class="text-brandBlue text-base sm:text-lg font-extrabold">
+                            <i class="fa-solid fa-circle-question text-brandPink mr-1"></i> Theo em, suy nghĩ của An có đúng không? Vì sao? Em sẽ khuyên An làm gì?
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Ô nhập câu trả lời tự do -->
+                <div>
+                    <label for="q5-input" class="block text-sm font-extrabold text-slate-600 mb-2">
+                        <i class="fa-solid fa-keyboard text-brandBlue mr-1"></i> Em hãy tự suy nghĩ và gõ câu trả lời ngắn bằng bàn phím vào ô bên dưới:
+                    </label>
+                    <textarea id="q5-input" rows="4" placeholder="Em hãy viết câu trả lời của mình tại đây..."
+                        class="w-full p-4 rounded-2xl border-2 border-slate-300 focus:border-brandBlue focus:ring-4 focus:ring-blue-100 outline-none text-base sm:text-lg font-semibold text-slate-800 transition resize-y"></textarea>
+                </div>
+
+                <!-- Khu vực phản hồi & Bảng chấm tiêu chí của Giáo viên (hiện sau khi nộp) -->
+                <div id="feedback-q5" class="hidden mt-5 space-y-4"></div>
+            </article>
+
+            <!-- NÚT CHẤM ĐIỂM LỚN Ở CUỐI PHIẾU -->
+            <div id="submit-section" class="pt-4 pb-10 flex justify-center">
+                <button type="button" id="btn-submit-quiz" class="btn-3d px-10 py-5 rounded-3xl bg-gradient-to-r from-brandBlue to-blue-700 hover:from-blue-800 hover:to-blue-900 text-brandYellow font-heading text-2xl sm:text-3xl font-extrabold tracking-wide border-4 border-brandYellow shadow-xl flex items-center gap-3 cursor-pointer">
+                    <span>🏆 CHẤM ĐIỂM</span>
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        /**
+         * =========================================================================
+         * CẤU HÌNH ĐƯỜNG DẪN GOOGLE SHEET MẶC ĐỊNH (DÀNH CHO GIÁO VIÊN)
+         * Thầy/cô dán đường dẫn Web App URL từ Google Apps Script vào giữa cặp dấu nháy bên dưới
+         * để học sinh làm bài xong tự động gửi điểm về Google Sheet mà không cần cài đặt lại:
+         * Ví dụ: const DEFAULT_GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycb.../exec";
+         * =========================================================================
+         */
+        const DEFAULT_GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzKZURIfMNdOwKvYXz3YhNNhypqPXcO2IYj_kv6SNjkxGFRfOv4Z6Y-wbXHANoue9Bi/exec";
+
+        /**
+         * DỮ LIỆU VÀ CẤU HÌNH PHIẾU HỌC TẬP TIN HỌC LỚP 4
+         */
+        const TOTAL_TIME_SECONDS = 15 * 60; // 15 phút
+
+        // Dữ liệu Câu 1: Kéo - thả
+        const Q1_ITEMS = [
+            { id: 'item1', name: 'Bàn phím', group: 'hardware', icon: 'fa-keyboard', color: 'text-blue-600 bg-blue-100' },
+            { id: 'item2', name: 'Chuột', group: 'hardware', icon: 'fa-computer-mouse', color: 'text-amber-600 bg-amber-100' },
+            { id: 'item3', name: 'Màn hình', group: 'hardware', icon: 'fa-desktop', color: 'text-indigo-600 bg-indigo-100' },
+            { id: 'item4', name: 'Thân máy', group: 'hardware', icon: 'fa-server', color: 'text-emerald-600 bg-emerald-100' },
+            { id: 'item5', name: 'Trò chơi', group: 'software', icon: 'fa-gamepad', color: 'text-pink-600 bg-pink-100' },
+            { id: 'item6', name: 'Phần mềm trình chiếu', group: 'software', icon: 'fa-file-powerpoint', color: 'text-orange-600 bg-orange-100' }
+        ];
+
+        // Đáp án Câu 2: Nối
+        const Q2_ANSWERS = { '1': 'B', '2': 'D', '3': 'C', '4': 'A' };
+        const Q2_LABELS_A = { '1': '1. Phần cứng', '2': '2. Phần mềm', '3': '3. Màn hình', '4': '4. Ứng dụng điện thoại' };
+        const Q2_LABELS_B = {
+            'A': 'A. Có thể thêm hoặc xóa trên điện thoại.',
+            'B': 'B. Có hình dạng, có thể nhận ra.',
+            'C': 'C. Hiển thị kết quả hoạt động.',
+            'D': 'D. Không có hình dạng như phần cứng.'
+        };
+
+        // Dữ liệu Câu 4: Đúng / Sai
+        const Q4_STATEMENTS = [
+            { id: 1, text: 'Chuột và bàn phím là phần cứng.', answer: true },
+            { id: 2, text: 'Phần mềm máy tính có hình dạng mà em có thể nhìn thấy trực tiếp như phần cứng.', answer: false },
+            { id: 3, text: 'Có thể bổ sung hoặc xóa bớt phần mềm trên điện thoại thông minh.', answer: true },
+            { id: 4, text: 'Loa và ổ đĩa là phần mềm máy tính.', answer: false }
+        ];
+
+        // Trạng thái ứng dụng
+        let state = {
+            googleSheetUrl: DEFAULT_GOOGLE_SHEET_URL,
+            studentName: '',
+            studentClass: '',
+            timeLeft: TOTAL_TIME_SECONDS,
+            timerInterval: null,
+            isSubmitted: false,
+            timeTakenText: '',
+            // Câu 1
+            q1Placements: {}, // { itemId: 'pool' | 'hardware' | 'software' }
+            q1SelectedMobileId: null,
+            // Câu 2
+            q2Connections: {}, // { '1': 'B', ... }
+            q2SelectedLeft: null,
+            q2SelectedRight: null,
+            // Câu 3
+            q3Selected: null,
+            // Câu 4
+            q4Answers: {}, // { 1: true/false, ... }
+            // Câu 5
+            q5Text: '',
+            q5Status: 'ungraded', // 'ungraded' | 'auto_confirmed' | 'needs_teacher' | 'teacher_confirmed'
+            q5Criteria: { c1: 0, c2: 0, c3: 0 }, // c1: 0/0.5, c2: 0/0.5, c3: 0/0.5/1
+            // Điểm từng câu
+            scores: { q1: 0, q2: 0, q3: 0, q4: 0, q5: 0 }
+        };
+
+        // Khởi tạo giá trị mặc định cho state
+        function resetAnswerState() {
+            state.q1Placements = {};
+            Q1_ITEMS.forEach(item => state.q1Placements[item.id] = 'pool');
+            state.q1SelectedMobileId = null;
+            state.q2Connections = {};
+            state.q2SelectedLeft = null;
+            state.q2SelectedRight = null;
+            state.q3Selected = null;
+            state.q4Answers = {};
+            state.q5Text = '';
+            state.q5Status = 'ungraded';
+            state.q5Criteria = { c1: 0, c2: 0, c3: 0 };
+            state.scores = { q1: 0, q2: 0, q3: 0, q4: 0, q5: 0 };
+            state.isSubmitted = false;
+            state.timeLeft = TOTAL_TIME_SECONDS;
+            state.timeTakenText = '';
+        }
+
+        /**
+         * =========================================================================
+         * 1. QUẢN LÝ HỘP THOẠI TÙY CHỈNH & ĐỊNH DẠNG ĐIỂM SỐ
+         * =========================================================================
+         */
+        function showModal({ title, message, icon = 'fa-bell', showCancel = false, confirmText = 'Đã hiểu', onConfirm = null }) {
+            const modal = document.getElementById('custom-modal');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('modal-icon').innerHTML = `<i class="fa-solid ${icon}"></i>`;
+            
+            const confirmBtn = document.getElementById('modal-confirm-btn');
+            const cancelBtn = document.getElementById('modal-cancel-btn');
+            confirmBtn.textContent = confirmText;
+
+            if (showCancel) {
+                cancelBtn.classList.remove('hidden');
+            } else {
+                cancelBtn.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            const closeModal = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            };
+
+            confirmBtn.onclick = () => {
+                closeModal();
+                if (typeof onConfirm === 'function') onConfirm();
+            };
+
+            cancelBtn.onclick = closeModal;
+        }
+
+        function formatScore(num) {
+            if (Number.isInteger(num)) return num.toString();
+            // Hiển thị tối đa 2 chữ số thập phân (ví dụ 1.67 hoặc 1.5)
+            return Number(num.toFixed(2)).toString();
+        }
+
+        /**
+         * =========================================================================
+         * 2. QUẢN LÝ KẾT NỐI & ĐỒNG BỘ DỮ LIỆU GOOGLE SHEET
+         * =========================================================================
+         */
+        try {
+            const savedUrl = localStorage.getItem('tin4_gsheet_url');
+            if (savedUrl && savedUrl.trim() !== '') {
+                state.googleSheetUrl = savedUrl.trim();
+            }
+        } catch (err) {
+            // Bỏ qua nếu trình duyệt chặn localStorage
+        }
+
+        function updateGSheetBadge() {
+            const badge = document.getElementById('gsheet-status-badge');
+            if (!badge) return;
+            if (state.googleSheetUrl) {
+                badge.className = 'font-bold text-emerald-700 flex items-center gap-1.5';
+                badge.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i> Đã kết nối Google Sheet';
+            } else {
+                badge.className = 'font-bold text-slate-400 flex items-center gap-1.5';
+                badge.innerHTML = '<i class="fa-solid fa-circle text-[8px]"></i> Chưa kết nối Google Sheet';
+            }
+        }
+
+        function openGSheetModal() {
+            const modal = document.getElementById('gsheet-modal');
+            const input = document.getElementById('gsheet-url-input');
+            input.value = state.googleSheetUrl || '';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeGSheetModal() {
+            const modal = document.getElementById('gsheet-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('open-gsheet-start').addEventListener('click', openGSheetModal);
+        document.getElementById('open-gsheet-result').addEventListener('click', openGSheetModal);
+        document.getElementById('close-gsheet-modal').addEventListener('click', closeGSheetModal);
+
+        // Sao chép mã Google Apps Script bằng document.execCommand('copy')
+        document.getElementById('btn-copy-gas').addEventListener('click', () => {
+            const codeText = document.getElementById('gas-code-block').textContent;
+            const tempTextarea = document.createElement('textarea');
+            tempTextarea.value = codeText;
+            document.body.appendChild(tempTextarea);
+            tempTextarea.select();
+            try {
+                document.execCommand('copy');
+                showModal({
+                    title: 'Đã sao chép mã!',
+                    message: 'Đoạn mã Google Apps Script đã được sao chép. Thầy/cô hãy dán vào trình soạn thảo Apps Script của Google Sheet nhé!',
+                    icon: 'fa-copy'
+                });
+            } catch (err) {
+                showModal({
+                    title: 'Không thể tự sao chép',
+                    message: 'Thầy/cô vui lòng bôi đen đoạn mã trong khung màu đen và nhấn Ctrl+C để sao chép.',
+                    icon: 'fa-circle-info'
+                });
+            }
+            document.body.removeChild(tempTextarea);
+        });
+
+        // Lưu URL Google Sheet
+        document.getElementById('btn-save-gsheet').addEventListener('click', () => {
+            const urlVal = document.getElementById('gsheet-url-input').value.trim();
+            state.googleSheetUrl = urlVal;
+            try {
+                localStorage.setItem('tin4_gsheet_url', urlVal);
+            } catch (e) {}
+            updateGSheetBadge();
+            closeGSheetModal();
+            showModal({
+                title: urlVal ? 'Đã lưu kết nối Google Sheet!' : 'Đã xóa kết nối',
+                message: urlVal 
+                    ? 'Từ bây giờ, mỗi khi học sinh nộp bài hoặc giáo viên xác nhận điểm Câu 5, dữ liệu sẽ tự động gửi vào Google Sheet của thầy/cô.' 
+                    : 'Đã gỡ đường dẫn Google Sheet.',
+                icon: 'fa-check-circle'
+            });
+        });
+
+        // Gửi thử dữ liệu kiểm tra (Test)
+        document.getElementById('btn-test-gsheet').addEventListener('click', () => {
+            const urlVal = document.getElementById('gsheet-url-input').value.trim();
+            if (!urlVal) {
+                showModal({
+                    title: 'Thiếu đường dẫn URL',
+                    message: 'Thầy/cô vui lòng dán đường dẫn Web App URL từ Google Apps Script trước khi gửi thử nhé!',
+                    icon: 'fa-triangle-exclamation'
+                });
+                return;
+            }
+            const samplePayload = {
+                studentName: 'Học sinh Kiểm Tra (Test)',
+                studentClass: '4A',
+                q1Score: 2,
+                q2Score: 2,
+                q3Score: 2,
+                q4Score: 2,
+                q5Score: 2,
+                q5Text: 'An nghĩ chưa đúng vì trò chơi là phần mềm. An chỉ cần nhờ bố mẹ cài đặt trò chơi phù hợp.',
+                totalScore: 10,
+                correctCount: '5/5',
+                timeTaken: '02 phút 15 giây',
+                comment: 'Xuất sắc!',
+                status: 'Dữ liệu kiểm tra kết nối'
+            };
+
+            fetch(urlVal, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(samplePayload)
+            }).then(() => {
+                showModal({
+                    title: 'Đã gửi dữ liệu mẫu!',
+                    message: 'Hệ thống đã gửi một dòng dữ liệu kiểm tra tới Google Sheet. Thầy/cô hãy mở file Google Sheet để kiểm tra nhé!',
+                    icon: 'fa-paper-plane'
+                });
+            }).catch(() => {
+                showModal({
+                    title: 'Lỗi gửi dữ liệu',
+                    message: 'Không thể kết nối tới đường dẫn này. Thầy/cô hãy kiểm tra lại quyền truy cập "Bất kỳ ai (Anyone)" trong Apps Script.',
+                    icon: 'fa-triangle-exclamation'
+                });
+            });
+        });
+
+        // Hàm gửi dữ liệu kết quả bài làm thực tế của học sinh lên Google Sheet
+        function syncResultsToGoogleSheet(isManual = false) {
+            const banner = document.getElementById('gsheet-sync-banner');
+            if (!state.googleSheetUrl) {
+                banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-300', 'text-emerald-800', 'bg-blue-50', 'border-blue-300', 'text-blue-800');
+                banner.classList.add('bg-amber-50', 'border-amber-300', 'text-amber-800');
+                banner.innerHTML = '<i class="fa-solid fa-circle-info mr-1.5"></i> Chưa cấu hình link Google Sheet. Thầy/cô nhấn nút <strong>"Cài đặt Google Sheet (GV)"</strong> ở trên để kết nối.';
+                if (isManual) openGSheetModal();
+                return;
+            }
+
+            const isQ5Final = (state.q5Status === 'auto_confirmed' || state.q5Status === 'teacher_confirmed');
+            const totalRaw = state.scores.q1 + state.scores.q2 + state.scores.q3 + state.scores.q4 + (isQ5Final ? state.scores.q5 : 0);
+            
+            let completeCount = 0;
+            if (Math.abs(state.scores.q1 - 2) < 0.001) completeCount++;
+            if (Math.abs(state.scores.q2 - 2) < 0.001) completeCount++;
+            if (Math.abs(state.scores.q3 - 2) < 0.001) completeCount++;
+            if (Math.abs(state.scores.q4 - 2) < 0.001) completeCount++;
+            if (isQ5Final && Math.abs(state.scores.q5 - 2) < 0.001) completeCount++;
+
+            const payload = {
+                studentName: state.studentName,
+                studentClass: state.studentClass,
+                q1Score: formatScore(state.scores.q1),
+                q2Score: formatScore(state.scores.q2),
+                q3Score: formatScore(state.scores.q3),
+                q4Score: formatScore(state.scores.q4),
+                q5Score: isQ5Final ? formatScore(state.scores.q5) : 'Chờ GV chấm',
+                q5Text: state.q5Text || '(Bỏ trống)',
+                totalScore: formatScore(totalRaw),
+                correctCount: `${completeCount}/5`,
+                timeTaken: state.timeTakenText,
+                comment: document.getElementById('res-comment').textContent,
+                status: isQ5Final ? 'Đã hoàn tất chấm điểm' : 'Chờ giáo viên xác nhận Câu 5'
+            };
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-300', 'text-emerald-800', 'bg-amber-50', 'border-amber-300', 'text-amber-800', 'bg-red-50', 'border-red-300', 'text-red-800');
+            banner.classList.add('bg-blue-50', 'border-blue-300', 'text-blue-800');
+            banner.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang gửi dữ liệu kết quả lên Google Sheet...';
+
+            fetch(state.googleSheetUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                banner.classList.remove('bg-blue-50', 'border-blue-300', 'text-blue-800');
+                banner.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-800');
+                const timeNow = new Date().toLocaleTimeString('vi-VN');
+                banner.innerHTML = `<i class="fa-solid fa-circle-check mr-1.5"></i> Đã lưu thành công kết quả của <strong>${state.studentName}</strong> vào Google Sheet lúc ${timeNow}!`;
+            }).catch(() => {
+                banner.classList.remove('bg-blue-50', 'border-blue-300', 'text-blue-800');
+                banner.classList.add('bg-red-50', 'border-red-300', 'text-red-800');
+                banner.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Gửi dữ liệu chưa thành công. Vui lòng kiểm tra kết nối mạng và nhấn nút <strong>"Gửi lại lên Google Sheet"</strong>.';
+            });
+        }
+
+        document.getElementById('btn-sync-gsheet').addEventListener('click', () => {
+            syncResultsToGoogleSheet(true);
+        });
+
+        updateGSheetBadge();
+
+        /**
+         * =========================================================================
+         * 3. MÀN HÌNH BẮT ĐẦU & ĐỒNG HỒ ĐẾM NGƯỢC 15 PHÚT
+         * =========================================================================
+         */
+        document.getElementById('student-info-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameVal = document.getElementById('student-name').value.trim();
+            const classVal = document.getElementById('student-class').value.trim();
+            const errEl = document.getElementById('start-error-msg');
+
+            if (!nameVal || !classVal) {
+                errEl.classList.remove('hidden');
+                return;
+            }
+            errEl.classList.add('hidden');
+
+            state.studentName = nameVal;
+            state.studentClass = classVal;
+            document.getElementById('display-name').textContent = state.studentName;
+            document.getElementById('display-class').textContent = state.studentClass;
+
+            resetAnswerState();
+            initWorksheetUI();
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('worksheet-screen').classList.remove('hidden');
+            document.getElementById('worksheet-screen').classList.add('flex');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            startCountdown();
+            setTimeout(drawQ2Lines, 100);
+        });
+
+        function startCountdown() {
+            clearInterval(state.timerInterval);
+            updateTimerDisplay();
+
+            state.timerInterval = setInterval(() => {
+                if (state.isSubmitted) {
+                    clearInterval(state.timerInterval);
+                    return;
+                }
+                state.timeLeft--;
+                updateTimerDisplay();
+
+                if (state.timeLeft <= 0) {
+                    clearInterval(state.timerInterval);
+                    state.timeLeft = 0;
+                    updateTimerDisplay();
+                    showModal({
+                        title: 'Đã hết thời gian 15 phút!',
+                        message: 'Thời gian làm bài đã hết. Hệ thống sẽ tự động nộp bài và chấm điểm kết quả của em ngay bây giờ!',
+                        icon: 'fa-hourglass-end',
+                        confirmText: 'Xem kết quả',
+                        onConfirm: () => gradeWorksheet(true)
+                    });
+                    // Tự động khóa và chấm ngay lập tức kể cả khi học sinh chưa bấm đóng modal
+                    gradeWorksheet(true);
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(state.timeLeft / 60);
+            const secs = state.timeLeft % 60;
+            const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            const displayEl = document.getElementById('timer-display');
+            const boxEl = document.getElementById('timer-box');
+            displayEl.textContent = formatted;
+
+            if (state.timeLeft <= 120) { // Cảnh báo khi còn dưới 2 phút
+                boxEl.classList.remove('bg-white', 'text-brandBlue', 'border-brandYellow');
+                boxEl.classList.add('bg-red-600', 'text-white', 'border-red-300', 'timer-warning');
+                document.getElementById('timer-icon').classList.remove('text-brandPink');
+                document.getElementById('timer-icon').classList.add('text-brandYellow');
+            } else {
+                boxEl.classList.add('bg-white', 'text-brandBlue', 'border-brandYellow');
+                boxEl.classList.remove('bg-red-600', 'text-white', 'border-red-300', 'timer-warning');
+                document.getElementById('timer-icon').classList.add('text-brandPink');
+                document.getElementById('timer-icon').classList.remove('text-brandYellow');
+            }
+        }
+
+        /**
+         * =========================================================================
+         * 4. CÂU 1: TƯƠNG TÁC KÉO - THẢ & CHẠM CHỌN (HỖ TRỢ CHUỘT + CẢM ỨNG)
+         * =========================================================================
+         */
+        function renderQ1() {
+            const zones = {
+                pool: document.getElementById('q1-pool'),
+                hardware: document.getElementById('q1-hardware'),
+                software: document.getElementById('q1-software')
+            };
+
+            Object.values(zones).forEach(z => z.innerHTML = '');
+
+            Q1_ITEMS.forEach(item => {
+                const currentZone = state.q1Placements[item.id] || 'pool';
+                const card = document.createElement('div');
+                card.id = `card-${item.id}`;
+                card.draggable = !state.isSubmitted;
+                card.dataset.itemId = item.id;
+
+                const isSelectedMobile = (state.q1SelectedMobileId === item.id && !state.isSubmitted);
+                let statusClass = 'border-slate-300 bg-white';
+                let badgeHtml = '';
+
+                if (state.isSubmitted) {
+                    if (currentZone === item.group) {
+                        statusClass = 'border-emerald-500 bg-emerald-50 locked';
+                        badgeHtml = '<i class="fa-solid fa-circle-check text-emerald-600 ml-1"></i>';
+                    } else {
+                        statusClass = 'border-red-500 bg-red-50 locked';
+                        badgeHtml = '<i class="fa-solid fa-circle-xmark text-red-600 ml-1"></i>';
+                    }
+                }
+
+                card.className = `draggable-card flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border-2 shadow-sm font-extrabold text-sm sm:text-base cursor-pointer ${statusClass} ${isSelectedMobile ? 'selected-mobile' : ''}`;
+                card.innerHTML = `
+                    <span class="w-9 h-9 rounded-xl ${item.color} flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid ${item.icon}"></i>
+                    </span>
+                    <span class="text-slate-800">${item.name}</span>
+                    ${badgeHtml}
+                `;
+
+                if (!state.isSubmitted) {
+                    // Kéo thả bằng chuột (HTML5 Drag & Drop)
+                    card.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', item.id);
+                        state.q1SelectedMobileId = null;
+                    });
+
+                    // Chạm chọn thẻ (Hỗ trợ điện thoại/máy tính bảng và click nhanh)
+                    card.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (state.q1SelectedMobileId === item.id) {
+                            state.q1SelectedMobileId = null;
+                        } else {
+                            state.q1SelectedMobileId = item.id;
+                        }
+                        renderQ1();
+                    });
+                }
+
+                zones[currentZone].appendChild(card);
+            });
+        }
+
+        function setupQ1Dropzones() {
+            const dropzoneIds = ['q1-pool', 'q1-hardware', 'q1-software'];
+            dropzoneIds.forEach(id => {
+                const el = document.getElementById(id);
+                const targetZone = el.dataset.zone;
+
+                el.addEventListener('dragover', (e) => {
+                    if (state.isSubmitted) return;
+                    e.preventDefault();
+                    el.classList.add('drag-over');
+                });
+
+                el.addEventListener('dragleave', () => {
+                    el.classList.remove('drag-over');
+                });
+
+                el.addEventListener('drop', (e) => {
+                    if (state.isSubmitted) return;
+                    e.preventDefault();
+                    el.classList.remove('drag-over');
+                    const itemId = e.dataTransfer.getData('text/plain');
+                    if (itemId && state.q1Placements[itemId] !== undefined) {
+                        state.q1Placements[itemId] = targetZone;
+                        state.q1SelectedMobileId = null;
+                        renderQ1();
+                    }
+                });
+
+                // Chạm vào vùng thả khi đang chọn thẻ trên màn hình cảm ứng
+                el.addEventListener('click', () => {
+                    if (state.isSubmitted) return;
+                    if (state.q1SelectedMobileId) {
+                        state.q1Placements[state.q1SelectedMobileId] = targetZone;
+                        state.q1SelectedMobileId = null;
+                        renderQ1();
+                    }
+                });
+            });
+        }
+
+        /**
+         * =========================================================================
+         * 5. CÂU 2: TƯƠNG TÁC NỐI HAI CỘT VỚI ĐƯỜNG CONG SVG RESPONSIVE
+         * =========================================================================
+         */
+        function setupQ2Interactions() {
+            const nodes = document.querySelectorAll('.q2-node');
+            nodes.forEach(node => {
+                node.addEventListener('click', () => {
+                    if (state.isSubmitted) return;
+                    const side = node.dataset.side;
+                    const id = node.dataset.id;
+
+                    if (side === 'A') {
+                        // Nếu mục A này đã nối rồi và không có B đang chờ, nhấn vào để gỡ đường nối cũ
+                        if (state.q2Connections[id] && !state.q2SelectedRight && state.q2SelectedLeft !== id) {
+                            delete state.q2Connections[id];
+                            state.q2SelectedLeft = id;
+                        } else if (state.q2SelectedLeft === id) {
+                            state.q2SelectedLeft = null;
+                        } else {
+                            state.q2SelectedLeft = id;
+                        }
+
+                        // Nếu đã chọn sẵn một mục ở B -> tạo cặp nối
+                        if (state.q2SelectedLeft && state.q2SelectedRight) {
+                            connectQ2Pair(state.q2SelectedLeft, state.q2SelectedRight);
+                        }
+                    } else if (side === 'B') {
+                        // Tìm xem B đã nối với A nào chưa
+                        const existingLeft = Object.keys(state.q2Connections).find(k => state.q2Connections[k] === id);
+                        if (existingLeft && !state.q2SelectedLeft && state.q2SelectedRight !== id) {
+                            delete state.q2Connections[existingLeft];
+                            state.q2SelectedRight = id;
+                        } else if (state.q2SelectedRight === id) {
+                            state.q2SelectedRight = null;
+                        } else {
+                            state.q2SelectedRight = id;
+                        }
+
+                        if (state.q2SelectedLeft && state.q2SelectedRight) {
+                            connectQ2Pair(state.q2SelectedLeft, state.q2SelectedRight);
+                        }
+                    }
+
+                    updateQ2NodeStyles();
+                    drawQ2Lines();
+                });
+            });
+
+            document.getElementById('btn-clear-q2').addEventListener('click', () => {
+                if (state.isSubmitted) return;
+                state.q2Connections = {};
+                state.q2SelectedLeft = null;
+                state.q2SelectedRight = null;
+                updateQ2NodeStyles();
+                drawQ2Lines();
+            });
+
+            window.addEventListener('resize', () => {
+                drawQ2Lines();
+            });
+        }
+
+        function connectQ2Pair(leftId, rightId) {
+            // Đảm bảo mỗi mục chỉ nối với một mục duy nhất
+            Object.keys(state.q2Connections).forEach(k => {
+                if (state.q2Connections[k] === rightId) {
+                    delete state.q2Connections[k];
+                }
+            });
+            state.q2Connections[leftId] = rightId;
+            state.q2SelectedLeft = null;
+            state.q2SelectedRight = null;
+        }
+
+        function updateQ2NodeStyles() {
+            document.querySelectorAll('.q2-node').forEach(node => {
+                const side = node.dataset.side;
+                const id = node.dataset.id;
+                const dot = node.querySelector('.q2-dot');
+
+                node.classList.remove('border-brandBlue', 'bg-blue-50', 'ring-4', 'ring-blue-200', 'border-brandPink', 'bg-pink-50', 'ring-pink-200', 'border-emerald-500', 'bg-emerald-50', 'border-red-500', 'bg-red-50');
+                dot.classList.remove('bg-brandBlue', 'bg-brandPink', 'bg-emerald-500', 'bg-red-500');
+
+                if (!state.isSubmitted) {
+                    if (side === 'A') {
+                        if (state.q2SelectedLeft === id) {
+                            node.classList.add('border-brandBlue', 'bg-blue-50', 'ring-4', 'ring-blue-200');
+                            dot.classList.add('bg-brandBlue');
+                        } else if (state.q2Connections[id]) {
+                            node.classList.add('border-brandBlue', 'bg-blue-50/60');
+                            dot.classList.add('bg-brandBlue');
+                        }
+                    } else {
+                        const isConnected = Object.values(state.q2Connections).includes(id);
+                        if (state.q2SelectedRight === id) {
+                            node.classList.add('border-brandPink', 'bg-pink-50', 'ring-4', 'ring-pink-200');
+                            dot.classList.add('bg-brandPink');
+                        } else if (isConnected) {
+                            node.classList.add('border-brandPink', 'bg-pink-50/60');
+                            dot.classList.add('bg-brandPink');
+                        }
+                    }
+                } else {
+                    // Trạng thái sau khi chấm điểm
+                    if (side === 'A') {
+                        const userRight = state.q2Connections[id];
+                        if (userRight && userRight === Q2_ANSWERS[id]) {
+                            node.classList.add('border-emerald-500', 'bg-emerald-50');
+                            dot.classList.add('bg-emerald-500');
+                        } else {
+                            node.classList.add('border-red-500', 'bg-red-50');
+                            dot.classList.add('bg-red-500');
+                        }
+                    }
+                }
+            });
+        }
+
+        function drawQ2Lines() {
+            const svg = document.getElementById('q2-svg');
+            const container = document.getElementById('q2-container');
+            if (!svg || !container || container.offsetParent === null) return;
+
+            svg.innerHTML = '';
+            const containerRect = container.getBoundingClientRect();
+
+            Object.entries(state.q2Connections).forEach(([leftId, rightId]) => {
+                const leftEl = container.querySelector(`.q2-node[data-side="A"][data-id="${leftId}"] .q2-dot`);
+                const rightEl = container.querySelector(`.q2-node[data-side="B"][data-id="${rightId}"] .q2-dot`);
+                if (!leftEl || !rightEl) return;
+
+                const lRect = leftEl.getBoundingClientRect();
+                const rRect = rightEl.getBoundingClientRect();
+
+                const x1 = lRect.left - containerRect.left + lRect.width / 2;
+                const y1 = lRect.top - containerRect.top + lRect.height / 2;
+                const x2 = rRect.left - containerRect.left + rRect.width / 2;
+                const y2 = rRect.top - containerRect.top + rRect.height / 2;
+
+                const midX = (x1 + x2) / 2;
+                const pathData = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+
+                let strokeColor = '#2563EB';
+                if (state.isSubmitted) {
+                    strokeColor = (Q2_ANSWERS[leftId] === rightId) ? '#16A34A' : '#DC2626';
+                }
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke', strokeColor);
+                path.setAttribute('stroke-width', '4');
+                path.setAttribute('stroke-linecap', 'round');
+                svg.appendChild(path);
+            });
+        }
+
+        /**
+         * =========================================================================
+         * 6. CÂU 3: TRẮC NGHIỆM 4 LỰA CHỌN LỚN
+         * =========================================================================
+         */
+        function setupQ3Interactions() {
+            const options = document.querySelectorAll('.q3-option');
+            options.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (state.isSubmitted) return;
+                    state.q3Selected = btn.dataset.opt;
+                    renderQ3Styles();
+                });
+            });
+        }
+
+        function renderQ3Styles() {
+            document.querySelectorAll('.q3-option').forEach(btn => {
+                const opt = btn.dataset.opt;
+                const letter = btn.querySelector('.q3-letter');
+
+                btn.classList.remove('border-brandBlue', 'bg-blue-50', 'ring-4', 'ring-blue-100', 'border-emerald-500', 'bg-emerald-50', 'border-red-500', 'bg-red-50');
+                letter.classList.remove('bg-brandBlue', 'text-white', 'bg-emerald-600', 'bg-red-600');
+                letter.classList.add('bg-slate-100', 'text-brandBlue');
+
+                if (!state.isSubmitted) {
+                    if (state.q3Selected === opt) {
+                        btn.classList.add('border-brandBlue', 'bg-blue-50', 'ring-4', 'ring-blue-100');
+                        letter.classList.remove('bg-slate-100', 'text-brandBlue');
+                        letter.classList.add('bg-brandBlue', 'text-white');
+                    }
+                } else {
+                    if (opt === 'C') {
+                        btn.classList.add('border-emerald-500', 'bg-emerald-50');
+                        letter.classList.remove('bg-slate-100', 'text-brandBlue');
+                        letter.classList.add('bg-emerald-600', 'text-white');
+                    } else if (state.q3Selected === opt && opt !== 'C') {
+                        btn.classList.add('border-red-500', 'bg-red-50');
+                        letter.classList.remove('bg-slate-100', 'text-brandBlue');
+                        letter.classList.add('bg-red-600', 'text-white');
+                    }
+                }
+            });
+        }
+
+        /**
+         * =========================================================================
+         * 7. CÂU 4: ĐÚNG / SAI (4 PHÁT BIỂU)
+         * =========================================================================
+         */
+        function renderQ4() {
+            const container = document.getElementById('q4-list');
+            container.innerHTML = '';
+
+            Q4_STATEMENTS.forEach(st => {
+                const userAns = state.q4Answers[st.id]; // true, false, or undefined
+                let rowBorder = 'border-slate-200 bg-slate-50/70';
+                let statusIcon = '';
+
+                if (state.isSubmitted) {
+                    if (userAns === st.answer) {
+                        rowBorder = 'border-emerald-400 bg-emerald-50/70';
+                        statusIcon = '<span class="text-emerald-600 font-extrabold text-sm ml-2"><i class="fa-solid fa-circle-check"></i> Đúng (+0,5đ)</span>';
+                    } else {
+                        rowBorder = 'border-red-400 bg-red-50/70';
+                        statusIcon = `<span class="text-red-600 font-extrabold text-sm ml-2"><i class="fa-solid fa-circle-xmark"></i> Sai (Đáp án: ${st.answer ? 'ĐÚNG' : 'SAI'})</span>`;
+                    }
+                }
+
+                const trueActive = (userAns === true)
+                    ? 'bg-emerald-600 text-white border-emerald-700 shadow-md scale-105'
+                    : 'bg-white text-slate-700 border-slate-300 hover:border-emerald-500';
+                const falseActive = (userAns === false)
+                    ? 'bg-brandPink text-white border-pink-700 shadow-md scale-105'
+                    : 'bg-white text-slate-700 border-slate-300 hover:border-brandPink';
+
+                const row = document.createElement('div');
+                row.className = `p-4 rounded-2xl border-2 ${rowBorder} flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition`;
+                row.innerHTML = `
+                    <div class="font-bold text-slate-800 text-base sm:text-lg">
+                        <span class="text-brandBlue font-extrabold mr-1">Phát biểu ${st.id}:</span> ${st.text} ${statusIcon}
+                    </div>
+                    <div class="flex items-center gap-2.5 shrink-0">
+                        <button type="button" data-st="${st.id}" data-val="true" ${state.isSubmitted ? 'disabled' : ''}
+                            class="q4-btn px-5 py-2.5 rounded-xl border-2 font-extrabold text-sm sm:text-base transition cursor-pointer ${trueActive}">
+                            <i class="fa-solid fa-check mr-1"></i> ĐÚNG
+                        </button>
+                        <button type="button" data-st="${st.id}" data-val="false" ${state.isSubmitted ? 'disabled' : ''}
+                            class="q4-btn px-5 py-2.5 rounded-xl border-2 font-extrabold text-sm sm:text-base transition cursor-pointer ${falseActive}">
+                            <i class="fa-solid fa-xmark mr-1"></i> SAI
+                        </button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+
+            if (!state.isSubmitted) {
+                container.querySelectorAll('.q4-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const stId = Number(btn.dataset.st);
+                        const val = (btn.dataset.val === 'true');
+                        state.q4Answers[stId] = val;
+                        renderQ4();
+                    });
+                });
+            }
+        }
+
+        /**
+         * =========================================================================
+         * 8. CÂU 5: ĐÁNH GIÁ NGỮ NGHĨA 3 TIÊU CHÍ & BẢNG XÁC NHẬN CỦA GIÁO VIÊN
+         * =========================================================================
+         */
+        function evaluateQ5Semantic(rawText) {
+            const text = rawText.trim();
+            if (!text) {
+                return {
+                    status: 'auto_confirmed',
+                    c1: 0,
+                    c2: 0,
+                    c3: 0,
+                    reason: 'Học sinh bỏ trống câu trả lời.'
+                };
+            }
+
+            // Chuẩn hóa chữ thường và bỏ dấu câu thừa để phân tích ngữ nghĩa
+            const norm = text.toLowerCase().replace(/[.,!?;:"'()\-]/g, ' ').replace(/\s+/g, ' ').trim();
+
+            // Tiêu chí 1 (0.5đ): Xác định suy nghĩ của An chưa đúng / không cần mua máy tính mới
+            const c1Patterns = [
+                /chua dung/, /khong dung/, /sai/, /nham/,
+                /khong can mua/, /khong phai mua/, /khong nhat thiet.*mua/, /khong can thiet.*mua/, /khong can thay may/
+            ];
+            const hasC1 = c1Patterns.some(rx => rx.test(norm));
+
+            // Tiêu chí 2 (0.5đ): Giải thích trò chơi là phần mềm / chương trình được cài trên máy tính
+            const c2Patterns = [
+                /(tro choi|game).*(phan mem|chuong trinh)/,
+                /(phan mem|chuong trinh).*(tro choi|game)/,
+                /la phan mem/, /mot phan mem/, /la chuong trinh/,
+                /bo sung phan mem/, /cai them phan mem/
+            ];
+            const hasC2 = c2Patterns.some(rx => rx.test(norm));
+
+            // Tiêu chí 3 (1.0đ full hoặc 0.5đ partial): Nhờ người lớn cài đặt trò chơi phù hợp nếu máy tính đáp ứng yêu cầu
+            const hasInstall = /(cai dat|cai them|cai tro choi|cai game|tai ve|tai tro choi|tai game|bo sung)/.test(norm);
+            const hasAdult = /(nguoi lon|bo me|ba me|cha me|anh chi|thay co|gia dinh|nguoi than)/.test(norm);
+            const hasCondition = /(phu hop|dap ung|du yeu cau|dung duoc|chay duoc|choi duoc|tuong thich|cau hinh)/.test(norm);
+
+            let c3Score = 0;
+            if (hasInstall) {
+                if (hasAdult || hasCondition) {
+                    c3Score = 1;
+                } else {
+                    c3Score = 0.5;
+                }
+            }
+
+            // Kiểm tra độ tin cậy ngữ nghĩa: Nếu học sinh viết câu dài (>= 12 ký tự) nhưng bộ nhận diện không bắt được tiêu chí nào
+            // hoặc câu diễn đạt quá đặc thù -> Chuyển trạng thái "Cần giáo viên kiểm tra" thay vì tự chấm sai oan.
+            const wordCount = norm.split(' ').length;
+            if (!hasC1 && !hasC2 && c3Score === 0 && wordCount >= 3) {
+                return {
+                    status: 'needs_teacher',
+                    c1: 0,
+                    c2: 0,
+                    c3: 0,
+                    reason: 'Câu trả lời diễn đạt tự do cần giáo viên đọc và xác nhận theo 3 tiêu chí.'
+                };
+            }
+
+            // Nếu đã nhận diện rõ ràng cả 3 tiêu chí hoặc một phần rõ nghĩa -> Đề xuất điểm & cho phép giáo viên điều chỉnh nếu muốn
+            return {
+                status: 'auto_confirmed',
+                c1: hasC1 ? 0.5 : 0,
+                c2: hasC2 ? 0.5 : 0,
+                c3: c3Score,
+                reason: 'Đã đối chiếu ngữ nghĩa theo 3 tiêu chí đánh giá.'
+            };
+        }
+
+        function renderQ5FeedbackAndTeacherPanel() {
+            const fbEl = document.getElementById('feedback-q5');
+            fbEl.classList.remove('hidden');
+
+            const isPending = (state.q5Status === 'needs_teacher');
+            const totalQ5 = state.q5Criteria.c1 + state.q5Criteria.c2 + state.q5Criteria.c3;
+
+            let statusBanner = '';
+            if (isPending) {
+                statusBanner = `
+                    <div class="bg-amber-100 border-2 border-amber-400 text-amber-900 rounded-2xl p-4 flex items-center gap-3">
+                        <i class="fa-solid fa-user-check text-2xl text-amber-600 shrink-0"></i>
+                        <div>
+                            <div class="font-extrabold text-base">Trạng thái: Cần giáo viên kiểm tra (Chờ giáo viên chấm)</div>
+                            <p class="text-sm font-semibold">Câu trả lời của em có cách diễn đạt riêng. Thầy/cô giáo sẽ xác nhận điểm theo 3 tiêu chí bên dưới nhé!</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const isFull = Math.abs(totalQ5 - 2) < 0.001;
+                statusBanner = `
+                    <div class="${isFull ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-red-50 border-red-300 text-red-900'} border-2 rounded-2xl p-4">
+                        <div class="font-extrabold text-base mb-1">
+                            <i class="fa-solid ${isFull ? 'fa-circle-check text-emerald-600' : 'fa-circle-info text-red-600'} mr-1"></i>
+                            Kết quả chấm Câu 5: ${formatScore(totalQ5)} / 2 điểm
+                        </div>
+                        <ul class="text-sm font-semibold space-y-1 ml-5 list-disc">
+                            <li>Tiêu chí 1 (Xác định suy nghĩ của An chưa đúng): <strong>${formatScore(state.q5Criteria.c1)} / 0,5 điểm</strong></li>
+                            <li>Tiêu chí 2 (Giải thích được trò chơi là phần mềm): <strong>${formatScore(state.q5Criteria.c2)} / 0,5 điểm</strong></li>
+                            <li>Tiêu chí 3 (Khuyên nhờ người lớn cài đặt trò chơi phù hợp nếu máy đáp ứng): <strong>${formatScore(state.q5Criteria.c3)} / 1 điểm</strong></li>
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // Hiển thị đáp án mẫu sau khi đã có kết quả xác nhận (không lộ khi đang chờ chấm)
+            const sampleAnswerHtml = !isPending ? `
+                <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 text-slate-800">
+                    <div class="font-extrabold text-brandBlue text-sm uppercase mb-1"><i class="fa-solid fa-lightbulb text-brandYellow mr-1"></i> Gợi ý trả lời chuẩn:</div>
+                    <p class="text-sm sm:text-base font-semibold italic">
+                        "Suy nghĩ của An chưa đúng vì trò chơi là phần mềm. Nếu máy tính đáp ứng yêu cầu, An chỉ cần nhờ người lớn cài đặt trò chơi phù hợp, không nhất thiết phải mua máy tính mới."
+                    </p>
+                </div>
+            ` : '';
+
+            // Bảng xác nhận / điều chỉnh điểm dành cho Giáo viên
+            const teacherPanelHtml = `
+                <div class="bg-slate-100 border-2 border-slate-300 rounded-2xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="font-extrabold text-brandBlue text-sm sm:text-base">
+                            <i class="fa-solid fa-chalkboard-user text-brandPink mr-1"></i> Bảng xác nhận / điều chỉnh điểm Câu 5 (Dành cho Giáo viên):
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3 text-sm">
+                        <div class="bg-white p-3 rounded-xl border border-slate-200">
+                            <label class="block font-bold text-slate-700 mb-1">Tiêu chí 1 (0,5đ): An nghĩ chưa đúng</label>
+                            <select id="gv-c1" class="w-full p-2 rounded-lg border border-slate-300 font-bold">
+                                <option value="0" ${state.q5Criteria.c1 === 0 ? 'selected' : ''}>0 điểm (Chưa đạt)</option>
+                                <option value="0.5" ${state.q5Criteria.c1 === 0.5 ? 'selected' : ''}>0,5 điểm (Đạt)</option>
+                            </select>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-slate-200">
+                            <label class="block font-bold text-slate-700 mb-1">Tiêu chí 2 (0,5đ): Trò chơi là phần mềm</label>
+                            <select id="gv-c2" class="w-full p-2 rounded-lg border border-slate-300 font-bold">
+                                <option value="0" ${state.q5Criteria.c2 === 0 ? 'selected' : ''}>0 điểm (Chưa đạt)</option>
+                                <option value="0.5" ${state.q5Criteria.c2 === 0.5 ? 'selected' : ''}>0,5 điểm (Đạt)</option>
+                            </select>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-slate-200">
+                            <label class="block font-bold text-slate-700 mb-1">Tiêu chí 3 (1đ): Nhờ người lớn cài đặt</label>
+                            <select id="gv-c3" class="w-full p-2 rounded-lg border border-slate-300 font-bold">
+                                <option value="0" ${state.q5Criteria.c3 === 0 ? 'selected' : ''}>0 điểm (Chưa đạt)</option>
+                                <option value="0.5" ${state.q5Criteria.c3 === 0.5 ? 'selected' : ''}>0,5 điểm (Nêu cài đặt, thiếu ý)</option>
+                                <option value="1" ${state.q5Criteria.c3 === 1 ? 'selected' : ''}>1 điểm (Đạt đầy đủ)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" id="btn-gv-confirm-q5" class="btn-3d px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm cursor-pointer">
+                            <i class="fa-solid fa-check-double mr-1"></i> Xác nhận điểm Câu 5 & Cập nhật bảng điểm
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            fbEl.innerHTML = statusBanner + sampleAnswerHtml + teacherPanelHtml;
+
+            document.getElementById('btn-gv-confirm-q5').addEventListener('click', () => {
+                state.q5Criteria.c1 = parseFloat(document.getElementById('gv-c1').value);
+                state.q5Criteria.c2 = parseFloat(document.getElementById('gv-c2').value);
+                state.q5Criteria.c3 = parseFloat(document.getElementById('gv-c3').value);
+                state.q5Status = 'teacher_confirmed';
+                state.scores.q5 = state.q5Criteria.c1 + state.q5Criteria.c2 + state.q5Criteria.c3;
+
+                updateQuestionBordersAndBadges();
+                renderQ5FeedbackAndTeacherPanel();
+                updateResultDashboard();
+
+                // Tự động đồng bộ lại kết quả chính thức lên Google Sheet sau khi giáo viên chấm xong
+                if (state.googleSheetUrl) {
+                    syncResultsToGoogleSheet(false);
+                }
+            });
+        }
+
+        /**
+         * =========================================================================
+         * 9. HỆ THỐNG CHẤM ĐIỂM TOÀN BÀI & QUY TẮC VIỀN XANH / VIỀN ĐỎ
+         * =========================================================================
+         */
+        document.getElementById('btn-submit-quiz').addEventListener('click', () => {
+            if (state.isSubmitted) return;
+            showModal({
+                title: 'Nộp bài và chấm điểm?',
+                message: 'Em đã kiểm tra kĩ câu trả lời của cả 5 câu chưa? Sau khi nộp bài, em sẽ không thể sửa lại đáp án nữa đâu nhé!',
+                icon: 'fa-trophy',
+                showCancel: true,
+                confirmText: '🏆 Nộp bài ngay',
+                onConfirm: () => gradeWorksheet(false)
+            });
+        });
+
+        function gradeWorksheet(isAutoTimeOut = false) {
+            if (state.isSubmitted) return;
+            state.isSubmitted = true;
+            clearInterval(state.timerInterval);
+
+            // Ghi nhận thời gian hoàn thành
+            const elapsed = TOTAL_TIME_SECONDS - state.timeLeft;
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            state.timeTakenText = `${String(mins).padStart(2, '0')} phút ${String(secs).padStart(2, '0')} giây`;
+
+            // Khóa ô nhập Câu 5
+            const q5Input = document.getElementById('q5-input');
+            state.q5Text = q5Input.value.trim();
+            q5Input.disabled = true;
+            q5Input.classList.add('bg-slate-100', 'text-slate-700');
+
+            // 1. Chấm Câu 1: Mỗi thẻ đúng 1/3 điểm (Tổng 2 điểm)
+            let q1CorrectItems = 0;
+            Q1_ITEMS.forEach(item => {
+                if (state.q1Placements[item.id] === item.group) {
+                    q1CorrectItems++;
+                }
+            });
+            state.scores.q1 = q1CorrectItems * (2 / 6); // 1/3 điểm mỗi thẻ
+
+            // 2. Chấm Câu 2: Mỗi cặp nối đúng 0.5 điểm (Tổng 2 điểm)
+            let q2CorrectPairs = 0;
+            Object.entries(Q2_ANSWERS).forEach(([leftId, correctRightId]) => {
+                if (state.q2Connections[leftId] === correctRightId) {
+                    q2CorrectPairs++;
+                }
+            });
+            state.scores.q2 = q2CorrectPairs * 0.5;
+
+            // 3. Chấm Câu 3: Chọn C được 2 điểm
+            state.scores.q3 = (state.q3Selected === 'C') ? 2 : 0;
+
+            // 4. Chấm Câu 4: Mỗi phát biểu đúng 0.5 điểm (Tổng 2 điểm)
+            let q4CorrectCount = 0;
+            Q4_STATEMENTS.forEach(st => {
+                if (state.q4Answers[st.id] === st.answer) {
+                    q4CorrectCount++;
+                }
+            });
+            state.scores.q4 = q4CorrectCount * 0.5;
+
+            // 5. Đánh giá Câu 5 theo ngữ nghĩa 3 tiêu chí
+            const q5Eval = evaluateQ5Semantic(state.q5Text);
+            state.q5Status = q5Eval.status;
+            state.q5Criteria = { c1: q5Eval.c1, c2: q5Eval.c2, c3: q5Eval.c3 };
+            state.scores.q5 = (state.q5Status === 'needs_teacher') ? 0 : (q5Eval.c1 + q5Eval.c2 + q5Eval.c3);
+
+            // Cập nhật giao diện từng câu hỏi
+            renderQ1();
+            updateQ2NodeStyles();
+            drawQ2Lines();
+            renderQ3Styles();
+            renderQ4();
+            renderQuestionExplanations();
+            renderQ5FeedbackAndTeacherPanel();
+            updateQuestionBordersAndBadges();
+
+            // Ẩn nút Chấm điểm, hiển thị Bảng kết quả
+            document.getElementById('submit-section').classList.add('hidden');
+            updateResultDashboard();
+
+            const dashboard = document.getElementById('result-dashboard');
+            dashboard.classList.remove('hidden');
+            dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Tự động gửi dữ liệu kết quả lên Google Sheet
+            syncResultsToGoogleSheet(false);
+        }
+
+        function updateQuestionBordersAndBadges() {
+            // Quy tắc bắt buộc: Viền xanh chỉ xuất hiện khi toàn bộ câu đúng 100%.
+            // Viền đỏ xuất hiện khi có ít nhất một ý sai hoặc thiếu.
+            const applyCardState = (cardId, badgeId, score, isPending = false) => {
+                const card = document.getElementById(cardId);
+                const badge = document.getElementById(badgeId);
+                card.classList.remove('border-neutral-state', 'border-correct-state', 'border-wrong-state');
+                badge.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-700', 'bg-red-100', 'text-red-700', 'bg-amber-100', 'text-amber-800');
+
+                if (isPending) {
+                    card.classList.add('border-neutral-state');
+                    badge.classList.add('bg-amber-100', 'text-amber-800');
+                    badge.innerHTML = '<i class="fa-solid fa-hourglass-half mr-1"></i> Chờ giáo viên chấm';
+                    return;
+                }
+
+                const isPerfect = Math.abs(score - 2) < 0.001;
+                if (isPerfect) {
+                    card.classList.add('border-correct-state');
+                    badge.classList.add('bg-emerald-100', 'text-emerald-700');
+                    badge.innerHTML = `<i class="fa-solid fa-check-circle mr-1"></i> Đúng 100% (${formatScore(score)}/2 điểm)`;
+                } else {
+                    card.classList.add('border-wrong-state');
+                    badge.classList.add('bg-red-100', 'text-red-700');
+                    badge.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1"></i> Chưa đúng hết (${formatScore(score)}/2 điểm)`;
+                }
+            };
+
+            applyCardState('card-q1', 'score-badge-q1', state.scores.q1, false);
+            applyCardState('card-q2', 'score-badge-q2', state.scores.q2, false);
+            applyCardState('card-q3', 'score-badge-q3', state.scores.q3, false);
+            applyCardState('card-q4', 'score-badge-q4', state.scores.q4, false);
+            applyCardState('card-q5', 'score-badge-q5', state.scores.q5, state.q5Status === 'needs_teacher');
+        }
+
+        function renderQuestionExplanations() {
+            // Giải thích Câu 1
+            const fb1 = document.getElementById('feedback-q1');
+            fb1.classList.remove('hidden');
+            fb1.innerHTML = `
+                <div class="font-extrabold text-brandBlue mb-1"><i class="fa-solid fa-key text-brandYellow mr-1"></i> Đáp án đúng Câu 1:</div>
+                <p class="text-slate-700 font-semibold">• <strong>PHẦN CỨNG:</strong> Bàn phím, Chuột, Màn hình, Thân máy.</p>
+                <p class="text-slate-700 font-semibold">• <strong>PHẦN MỀM:</strong> Trò chơi, Phần mềm trình chiếu.</p>
+            `;
+
+            // Giải thích Câu 2
+            const fb2 = document.getElementById('feedback-q2');
+            fb2.classList.remove('hidden');
+            fb2.innerHTML = `
+                <div class="font-extrabold text-brandBlue mb-1"><i class="fa-solid fa-key text-brandYellow mr-1"></i> Đáp án đúng Câu 2:</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-slate-700 font-semibold">
+                    <div>• <strong>1. Phần cứng</strong> – B. Có hình dạng, có thể nhận ra.</div>
+                    <div>• <strong>2. Phần mềm</strong> – D. Không có hình dạng như phần cứng.</div>
+                    <div>• <strong>3. Màn hình</strong> – C. Hiển thị kết quả hoạt động.</div>
+                    <div>• <strong>4. Ứng dụng điện thoại</strong> – A. Có thể thêm hoặc xóa trên điện thoại.</div>
+                </div>
+            `;
+
+            // Giải thích Câu 3
+            const fb3 = document.getElementById('feedback-q3');
+            fb3.classList.remove('hidden');
+            fb3.innerHTML = `
+                <div class="font-extrabold text-brandBlue mb-1"><i class="fa-solid fa-key text-brandYellow mr-1"></i> Đáp án đúng Câu 3: Phương án C</div>
+                <p class="text-slate-700 font-semibold"><strong>Giải thích:</strong> Chương trình luyện tập gõ bàn phím là phần mềm, không phải phần cứng.</p>
+            `;
+
+            // Giải thích Câu 4
+            const fb4 = document.getElementById('feedback-q4');
+            fb4.classList.remove('hidden');
+            fb4.innerHTML = `
+                <div class="font-extrabold text-brandBlue mb-1"><i class="fa-solid fa-key text-brandYellow mr-1"></i> Đáp án đúng Câu 4:</div>
+                <p class="text-slate-700 font-semibold">1. <strong>ĐÚNG</strong> • 2. <strong>SAI</strong> (Phần mềm không có hình dạng như phần cứng) • 3. <strong>ĐÚNG</strong> • 4. <strong>SAI</strong> (Loa và ổ đĩa là phần cứng).</p>
+            `;
+        }
+
+        function updateResultDashboard() {
+            document.getElementById('res-name').textContent = state.studentName;
+            document.getElementById('res-class').textContent = state.studentClass;
+            document.getElementById('res-time-taken').textContent = state.timeTakenText;
+
+            const isQ5Pending = (state.q5Status === 'needs_teacher');
+            const totalRaw = state.scores.q1 + state.scores.q2 + state.scores.q3 + state.scores.q4 + (isQ5Pending ? 0 : state.scores.q5);
+
+            // Đếm số câu đúng hoàn toàn (100% = 2 điểm)
+            let completeCount = 0;
+            if (Math.abs(state.scores.q1 - 2) < 0.001) completeCount++;
+            if (Math.abs(state.scores.q2 - 2) < 0.001) completeCount++;
+            if (Math.abs(state.scores.q3 - 2) < 0.001) completeCount++;
+            if (Math.abs(state.scores.q4 - 2) < 0.001) completeCount++;
+            if (!isQ5Pending && Math.abs(state.scores.q5 - 2) < 0.001) completeCount++;
+
+            document.getElementById('res-total-score').textContent = formatScore(totalRaw);
+
+            if (isQ5Pending) {
+                document.getElementById('res-score-label').textContent = 'Điểm tạm tính (Câu 1–4)';
+                document.getElementById('res-pending-note').classList.remove('hidden');
+                document.getElementById('res-correct-count').textContent = `${completeCount} / 4 câu đã chấm`;
+                document.getElementById('res-comment').textContent = 'Chờ hoàn tất Câu 5';
+            } else {
+                document.getElementById('res-score-label').textContent = 'Tổng điểm đạt được';
+                document.getElementById('res-pending-note').classList.add('hidden');
+                document.getElementById('res-correct-count').textContent = `${completeCount} / 5 câu`;
+
+                // Quy tắc nhận xét tự động
+                const percentage = (totalRaw / 10) * 100;
+                let comment = '';
+                if (percentage >= 90) {
+                    comment = 'Xuất sắc!';
+                } else if (percentage >= 70) {
+                    comment = 'Tốt!';
+                } else if (percentage >= 50) {
+                    comment = 'Cần luyện thêm!';
+                } else {
+                    comment = 'Xem lại bài nhé!';
+                }
+                document.getElementById('res-comment').textContent = comment;
+            }
+        }
+
+        /**
+         * =========================================================================
+         * 10. CHỨC NĂNG XEM LẠI BÀI LÀM & LÀM LẠI BÀI
+         * =========================================================================
+         */
+        document.getElementById('btn-review').addEventListener('click', () => {
+            document.getElementById('card-q1').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        document.getElementById('btn-retry').addEventListener('click', () => {
+            showModal({
+                title: 'Làm lại bài từ đầu?',
+                message: 'Toàn bộ câu trả lời cũ và điểm số hiện tại sẽ được xóa để em bắt đầu lượt làm bài mới (vẫn giữ nguyên Họ tên và Lớp). Em đồng ý chứ?',
+                icon: 'fa-rotate-right',
+                showCancel: true,
+                confirmText: 'Đồng ý làm lại',
+                onConfirm: () => {
+                    resetAnswerState();
+                    initWorksheetUI();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    startCountdown();
+                    setTimeout(drawQ2Lines, 100);
+                }
+            });
+        });
+
+        function initWorksheetUI() {
+            // Ẩn bảng kết quả, hiện nút Chấm điểm
+            document.getElementById('result-dashboard').classList.add('hidden');
+            document.getElementById('submit-section').classList.remove('hidden');
+
+            // Khôi phục viền trung tính và ẩn huy hiệu điểm + giải thích
+            ['q1', 'q2', 'q3', 'q4', 'q5'].forEach(q => {
+                const card = document.getElementById(`card-${q}`);
+                card.classList.remove('border-correct-state', 'border-wrong-state');
+                card.classList.add('border-neutral-state');
+
+                document.getElementById(`score-badge-${q}`).classList.add('hidden');
+                document.getElementById(`feedback-${q}`).classList.add('hidden');
+            });
+
+            // Khôi phục ô nhập Câu 5
+            const q5Input = document.getElementById('q5-input');
+            q5Input.value = '';
+            q5Input.disabled = false;
+            q5Input.classList.remove('bg-slate-100', 'text-slate-700');
+
+            // Render lại các câu hỏi
+            renderQ1();
+            updateQ2NodeStyles();
+            drawQ2Lines();
+            renderQ3Styles();
+            renderQ4();
+        }
+
+        // Khởi tạo các bộ lắng nghe sự kiện tương tác một lần duy nhất khi tải trang
+        setupQ1Dropzones();
+        setupQ2Interactions();
+        setupQ3Interactions();
+    </script>
+</body>
+</html>
